@@ -1,0 +1,29 @@
+body{
+    background-color: #090152;
+}
+
+.board{
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 1;
+    min-height: 100vh;
+    min-width: 100vw;
+    justify-content: center;
+}
+
+.row1 , .row2 , .row3{
+    display: flex;
+    flex : 1 1 1;
+    flex-direction: row;
+    justify-items: center;
+}
+
+.element{
+    border: solid;
+    min-height: 30vh;
+    min-width: 30vw;
+    font-size: 25vh;
+    text-align: center;
+    color: white;
+    border-color: black;
+}
