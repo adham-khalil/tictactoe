@@ -8,7 +8,7 @@ class element{
 
 
 const board = []
-let move = 1
+let moves = 1
 for(let i = 0 ; i < 3 ; i++){
     board[i] = []
     for(let j = 0 ; j < 3 ; j++){
@@ -32,78 +32,75 @@ function clearBoard(board){
 
 
 
-function checkCol(board , j){
-    const temp = board[0][j].item.textContent
-
-    for(let i = 1 ; i < 3 ; ++i){
-        if(board[i][j].item.textContent != temp){
-            return false
-        }
-    }
-    return true &&  board[0][j].hasText
-
-}
-
-
-function checkRow(board , i ){
-    const temp = board[i][0].item.textContent
-
-    for(let j = 1 ; j < 3 ; ++j){
-        if(temp != board[i][j].item.textContent){
-            return false
-        }
-    }
-
-    return true && board[i][0].hasText
-}
-
-function checkDiagonal(board){
-    const temp1 = board[0][0].item.textContent
-    const temp2 = board[0][2].item.textContent
-    if(!board[0][0].hasText && !board[0][2].hasText){
+function checkCol(board, j){
+    if(!board[0][j].hasText){
         return false
     }
-    function checkD1(i,j){
-        if(i === 2 && board[i][j].item.textContent === temp1){
-            return true
-        }
 
-        else if(board[i][j].item.textContent != temp1){
+    const temp = board[0][j].item.textContent
+    for(let i = 1 ; i < 3 ; i++){
+        if(board[i][j].item.textContent !== temp){
             return false
         }
-
-        else{
-            return checkD1(i+1,j+1)
-        }
-
     }
 
-    function checkD2(i,j){
-        if(i === 2 && board[i][j].item.textContent === temp2){
-            return true
-        }
-
-        else if(board[i][j].item.textContent != temp2){
-            return false
-        }
-
-        else{
-            return checkD1(i+1,j-1)
-        }
-
-    }
-
-    return checkD1(1,1) || checkD2(1,1)
+    return true
 }
 
-function checkWin(board){
-    for(let i = 0 ; i < 3 ; i++){
-        if(checkCol(board,i) || checkRow(board,i)){
-            return true
+function checkRow(board , i){
+    if(!board[i][0].hasText){
+        return false
+    }
+
+    const temp = board[i][0].item.textContent
+    for(let j = 1 ; j < 3 ; j++){
+        if(board[i][j].item.textContent !== temp){
+            return false
         }
     }
 
-    return checkDiagonal(board)
+    return true
+}
+
+function checkDiag(board){
+    if(!board[0][0].hasText || !board[0][2].hasText){
+        return false
+    }
+
+    
+
+    const temp1 = board[0][0].item.textContent
+    const temp2 = board[0][2].item.textContent
+
+    function checkD1(){
+        for(let i = 1 ; i < 3 ; i++){
+            if(board[i][i].item.textContent !== temp1){
+                return false
+            }
+        }
+    
+        return true
+    
+    }
+
+    function checkD2(){
+        for(let i = 1 ; i < 3 ; i++){
+            if(board[i][2-i].item.textContent !== temp2){
+                return false
+            }
+        }
+    
+        return true
+    
+    }
+
+    return checkD1() || checkD2()
+}
+
+function winGame(){
+    window.alert("You won")
+    clearBoard(board)
+    moves = 1
 }
 
 
@@ -111,61 +108,62 @@ function isFilled(moves){
     return moves === 9
 }
 
-function checkGame(elmnt){
+
+function checkMove(elmnt){
     return new Promise((resolve, reject)=>{
         if(elmnt.hasText){
             reject(window.alert("This move has already been played"))
         }
 
-        else if(isFilled(move)){
-            reject(window.alert("Game Over"))
-            clearBoard(board)
-            move = 1
-        }
-
-        else if(checkWin(board)){
-            console.log("adham")
-            reject(window.alert("You won"))
-            clearBoard(board)
-            move = 1
-        }
-
         else{
-            
             resolve(()=>{
                 elmnt.hasText = true
-                if(move % 2 === 1){
+                if(moves % 2 === 1){
                     elmnt.item.textContent = "X"
                 }
 
                 else{
                     elmnt.item.textContent = "O"
                 }
-                move++
+                moves++
             })
         }
     })
 }
 
-async function play(elmnt){
-    try{
-        const start = await checkGame(elmnt)
-        start()
 
-    }
+function checkState(elmn , i , j , moves, board){
+    return new Promise((resolve, reject)=>{
+        if(isFilled(moves)){
+            resolve(()=>{
 
-    catch(err){
-        console.log("could not place item",err)
-    }
+                window.alert("Game over")
+                clearBoard(board)
+                moves = 1
+            })
+        }
+
+        if(checkCol(board,j) || checkRow(board,i) || checkDiag(board)){
+            resolve(winGame)
+        }
+    })
 }
 
-
+const play = async (elmnt , i , j , moves , board)=>{
+    try{
+        const move = await checkMove(elmnt)
+        move()
+        const state = await checkState(elmnt, i , j , moves , board)
+        state()
+    }
+    catch(err){
+        console.error(err)
+    }
+}
 function startGame(){
-    board.forEach(row=>{
-        row.forEach(elmnt=>{
-            elmnt.item.addEventListener("click", ()=>{
-                play(elmnt)
-            })
+    board.forEach((row,i)=>{
+        row.forEach((elmnt,j)=>{
+            elmnt.item.addEventListener("click",()=>play(elmnt, i , j , moves , board))
         })
     })
 }
